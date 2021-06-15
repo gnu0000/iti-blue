@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<leaserfb>
+     <adv-tract-num type="integer">21387</adv-tract-num>
+     <agency-id type="integer" nil="true">1</agency-id>
+     <area-block>07 - 32 - 18.36</area-block>
+     <bid-acreage type="float" nil="true">32</bid-acreage>
+     <bidder-name nil="true"></bidder-name>
+     <bids-due type="datetime">2008-05-30T13:57:00-04:00</bids-due>
+     <bonus-leased type="float" nil="true">12345.67</bonus-leased>
+     <created-at type="datetime">2008-05-13T13:59:42-04:00</created-at>
+     <description>15 Year lease of SW quayle ouild fields of south farthing.</description>
+     <gas-royalty type="float" nil="true">.23</gas-royalty>
+     <id type="integer">3</id>
+     <lease-duration>180</lease-duration>
+     <lease-unit>months</lease-unit>
+     <notice>This is hereby a notice that we will be passing gas!</notice>
+     <oil-royalty type="float" nil="true">.20</oil-royalty>
+     <parish>Robert</parish>
+     <price-per-acre type="float" nil="true">123.99</price-per-acre>
+     <township-range>Gville</township-range>
+     <tract-kind>School Indemnity Lands</tract-kind>
+     <updated-at type="datetime">2008-05-13T13:59:42-04:00</updated-at>
+    <parcel>
+       <created-at type="datetime">2008-05-13T13:59:42-04:00</created-at>
+       <description>From the SW corner of Mayberry and Boloxie north and east to lake Quayle.</description>
+       <id type="integer">2</id>
+       <leaserfb-id type="integer">3</leaserfb-id>
+       <tract-acreage type="float">540.0</tract-acreage>
+       <updated-at type="datetime">2008-05-13T13:59:42-04:00</updated-at>
+    <boundaries type="array">
+      <boundary>
+        <created-at type="datetime">2008-05-13T13:59:51-04:00</created-at>
+        <easting type="float">1.0</easting>
+        <id type="integer">6</id>
+        <index type="integer">1</index>
+        <northing type="float">1.0</northing>
+        <parcel-id type="integer">2</parcel-id>
+        <updated-at type="datetime">2008-05-13T13:59:51-04:00</updated-at>
+      </boundary>
+      <boundary>
+        <created-at type="datetime">2008-05-13T13:59:54-04:00</created-at>
+        <easting type="float">2.0</easting>
+        <id type="integer">7</id>
+        <index type="integer">2</index>
+        <northing type="float">2.0</northing>
+        <parcel-id type="integer">2</parcel-id>
+        <updated-at type="datetime">2008-05-13T13:59:54-04:00</updated-at>
+      </boundary>
+      <boundary>
+        <created-at type="datetime">2008-05-13T14:00:03-04:00</created-at>
+        <easting type="float">99.0</easting>
+        <id type="integer">8</id>
+        <index type="integer">3</index>
+        <northing type="float">2.0</northing>
+        <parcel-id type="integer">2</parcel-id>
+        <updated-at type="datetime">2008-05-13T14:00:03-04:00</updated-at>
+      </boundary>
+      <boundary>
+        <created-at type="datetime">2008-05-13T14:00:08-04:00</created-at>
+        <easting type="float">99.0</easting>
+        <id type="integer">9</id>
+        <index type="integer">4</index>
+        <northing type="float">99.0</northing>
+        <parcel-id type="integer">2</parcel-id>
+        <updated-at type="datetime">2008-05-13T14:00:08-04:00</updated-at>
+      </boundary>
+      <boundary>
+        <created-at type="datetime">2008-05-13T14:00:15-04:00</created-at>
+        <easting type="float">3.0</easting>
+        <id type="integer">10</id>
+        <index type="integer">5</index>
+        <northing type="float">99.0</northing>
+        <parcel-id type="integer">2</parcel-id>
+        <updated-at type="datetime">2008-05-13T14:00:15-04:00</updated-at>
+      </boundary>
+      <boundary>
+        <created-at type="datetime">2008-05-13T14:00:21-04:00</created-at>
+        <easting type="float">3.0</easting>
+        <id type="integer">11</id>
+        <index type="integer">6</index>
+        <northing type="float">3.0</northing>
+        <parcel-id type="integer">2</parcel-id>
+        <updated-at type="datetime">2008-05-13T14:00:21-04:00</updated-at>
+      </boundary>
+    </boundaries>
+  </parcel>
+</leaserfb>

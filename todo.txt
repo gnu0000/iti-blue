@@ -1,0 +1,38 @@
+Elephant todo:
+--------------
+
+1> Be more strict on accepting policies
+    ex: [RWRWRW]
+    ex: [RWRWRW]junk <--- works but shouldn't
+    ex: [RWRWRW]date,[RWRWRW] <--- works but not as expected
+
+2> Be fully case sensitive
+
+3> Include Policy2 and policy change in bucket xml (currently,
+they only show up in the headers)
+
+
+4> support an acronym type for Timed Locks.  something like:
+  old: [.W.W..],2008-11-22 11:00:00,[R.....]
+  new: TimeLock,2008-11-22 11:00:00
+
+5> Update the online docs
+
+
+6> Expose the admin pages
+
+7> Apache error log shows:
+[Fri May 16 11:26:36 2008] [error] [client 172.20.1.103] DBD::mysql::st
+execute failed: Unknown column 'user_agent' in 'field list' at
+../lib/Blue/DB.pm line 152.
+
+8> Ability to query resources
+
+9> ignore extra / in the resource uris 
+Example: 
+interpret https://elephant.bidx.com/namespace//bucket as
+https://elephant.bidx.com/namespace/bucket
+
+10> API for user management. (For example BidderServer might want to create a
+new elephant user when ever a new user is created on BidderServer)
+

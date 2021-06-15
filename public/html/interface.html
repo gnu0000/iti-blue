@@ -1,0 +1,600 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+       "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    <style type="text/css" media="screen">
+      body {margin: 1em}
+      .cmd_block {width:90%; border:2px solid gray; margin-top:1em; padding: .5em 1em; background-color: #f0f0f4;}
+      .cmd_block h2 {margin: 0; border:0; padding:0}
+      .cmd_block pre {margin: 0 2em; background-color: #fcf5d2; border: 1px solid #ece522; padding: .5em 0 0 0}
+      p {margin: 1em; width: 90%}
+    </style>
+    <title>Blue Elephant Data Transfer Service</title>
+  </head>
+  <body>
+    <h1>Blue Elephant - Interface Reference</h1>
+
+    <p>
+      The Blue Elephant Data Storage and Transfer Service is intended to be used by REST web clients.
+      This web interface conforms to REST / ROA guidlines outlined in the book 
+      <a href="http://www.oreilly.com/catalog/9780596529260/">RESTful Web Services</a>.
+    </p>
+    <p>
+      This document describes the functionality of the server.  Some of this functionality may not be
+      exposed by the sample client, and the client may impose additional authorization constraints.
+    </p>
+    <p>
+      Several pieces of information are transferred to/from the server via standard and custom headers.  The 
+      individual commands mention the headers that may be used with the command, and a complete list of headers
+      may be found <a href="#headers">Here.</a>
+    </p>
+    <h2>Terminology and Conventions</h2>
+    <h4>Authentication</h4>
+    <p>
+      Curretly, this service is restricted to request based authentication.  This means that every 
+      request is expected to contain an particular header (<a href="#header_X_Blue_Authorization">X-Blue-Authorization</a>)
+      to provide user authentication.  In the near future this service may also support Basic authentication
+      (using WWW-Authenticate and Authorization headers along with a cookie) for browser based sessions.
+    </p>
+    <h4>Namespaces, Buckets and Objects</h4>
+    <p>
+      The resource landscape for this service is divided up into Namespaces.  A Namespace contains
+      0 or more Buckets.  A Bucket contains 0 or more Objects.  for a loose analogy, one could
+      think of Namespaces as drive letters, Buckets as directories, and Objects as files.
+    </p>
+    <p>
+      the names of Namespaces and Buckets are restricted to letters and numbers, the dash '-', 
+      underscore '_' and period'.'.  Object names can contain (almost) any ascii char.
+    </p>
+    <p>
+      This site only provides 2 levels of division for Objects (Namespaces and Buckets), but virtual
+      levels may be created by using slashes in the Object names.
+    </p>
+    <h4>URL Conventions</h4>
+    <p>A URL to an Object looks like this:</p>
+    <pre>
+      http://(hostname)/(namespace)/(bucket-name)/(object-name)
+    </pre>
+    <p>Examples</p>
+    <pre>
+      http://www.blueelephant.net/craigspace/projects/foobar-notes.txt
+      http://www.blueelephant.net/ZZDOT/lettings/junk.zip
+    </pre>
+    <p>
+      Note that this is just the default convention.  The configuration of this service also allows it
+      to be setup as a part of an existing server, in which case there will be a prefix in the urls.
+      for example, it could be configured to be accessed under the /Resources portion of the site.
+    </p>
+      
+    <h4>REST/ROA Conventions</h4>
+    <p>
+      This service conforms to REST/ROA conventions.  With REST/ROA, the URI's 
+      specify the resources (Nouns), and the HTTP methods specify the action
+      (Verbs) to perform on the resource.  This is in contrast to the typical
+      web services you see on the user web, where there is typically few 
+      resource types and many actions, which are specified not
+      by the http verb (which is usually POST), but in the URI or post body.
+    </p>
+    <p>
+      Using REST/ROA, you use the http verbs GET to get a resource, PUT to upload 
+      or update a resource, DELETE to delete a resource, and HEAD to get metadata about a
+      resource.  Since web browsers only support GET and POST, and it is often 
+      convenient to test using a browser, therefore  this site lets you override 
+      the http verb using the CGI parameter method=verb.  For example.
+    <pre>
+      http://www.blueelephant.net/craigspace/projects/foobar-notes.txt?method=delete</pre>
+
+    <h4>Users</h4>
+    <p>
+      A user is determined by the name field of the <a href="#header_X_Blue_Authorization">X-Blue-Authorization</a>
+      HTTP header in a request.  Users come in 3 roles: Admins, Owners, and Users.  A user's role is determined 
+      by the role field in the user table. an Admin is Grand-Pubaa and can do anything.  An Owner has the ability
+      to create Buckets in his/her Namespace.  a User does not have the ability to create Buckets but
+      may read/write Objects subject to the constraints of the Bucket permissions.  There is actually
+      a fourth user role: Guest.  A Guest is implicitly the issuer of a request that contains no authentication
+      information.
+    </p>
+
+    <h4>Bucket Policies</h4>
+    <p>
+      When an Owner creates a Bucket, he/she defines the Bucket permission policy using the 
+      <a href="#header_X_Bucket_Policy">X-Bucket-Policy</a> header.  The policy setting defines who may read and  write
+      Objects in the Bucket, and what happens when the user gets an index of the Bucket.  See the
+      <a href="#header_X_Bucket_Policy">X-Bucket-Policy</a> section for details on how a Bucket policy for more details.
+    </p>
+
+
+    <h4>X.509 Certificates</h4>
+      <p>
+        Each Namespace has a special Bucket called 'cert' that is used to store X.509 certificates.  This Bucket behaves
+        much like other Buckets in that you can index, upload, download and delete it's Objects (certificates).  It is different 
+        in that the system creates this Bucket automatically, the permissions are fixed (only owners may write, anyone can read), 
+        and that only X.509 certificates are considered valid Objects.
+      </p>
+      <p>
+        The reason for this special Bucket's existence is to provide certificates for other Buckets for signing and encryption
+        purposes.
+      </p>
+        
+    <h4>Verifying Objects are Signed</h4>
+    <p>
+      If a Bucket was created with a <a href="#header_X_Bucket_Signature_Cert" >X-Bucket-Signature-Cert </a> header
+      only Objects that are signed using an X.509 Certificate may be uploaded to the Bucket.
+
+      If the value of this header is an asterisk '*', the server only verifies that the object is a signed object.
+
+      If the value of this header is a comma separated list of certificate names, the server verifies that one or 
+      more of these certificates are the root of the certificate used to sign the object.  The convention is that
+      any certificates who's names occur in bucket headers must exist in the cert bucket.
+    </p>
+    <h4>Verifying Objects are Encrypted</h4>
+    <p>
+      If a Bucket was created with a <a href="#header_X_Bucket_Encryption_Cert">X-Bucket-Encryption-Cert</a> header and
+      the header value is not blank, only Objects what are encrypted to the specified X.509 Certificate may be uploaded 
+      to the Bucket.  The value of this header must be the name of the encryption certificate Object which is implicitly 
+      in the Namespace's 'cert' Bucket.
+    </p>
+     
+    <h2>Commands</h2>
+    <p>The Blue elephant Interface Implements the following functions:</p>
+    <ul>
+      <li><a href="#namespace_get"  >Get an Index of Buckets in a namespace     </a></li>
+      <li><a href="#bucket_get"     >Get Bucket Info                            </a></li>
+      <li><a href="#bucket_put"     >Create a Bucket                            </a></li>
+      <li><a href="#bucket_delete"  >Delete a Bucket                            </a></li>
+      <li><a href="#bucket_head"    >Get a Bucket's header info                 </a></li>
+      <li><a href="#object_put"     >Upload an Object                           </a></li>
+      <li><a href="#object_get"     >Download an Object                         </a></li>
+      <li><a href="#object_delete"  >Delete an Object                           </a></li>
+      <li><a href="#object_head"    >Get an Object's header info                </a></li>
+    </ul>
+
+    <div class="cmd_block">
+      <h2 id="namespace_get">Get an Index of Buckets in a Namespace</h2>
+      <h3>Request</h3>
+      <pre>
+        GET http://whateverhost/(namespace)
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <pre>
+        &lt;buckets&gt;
+           &lt;namespace&gt;craigspace&lt;/namespace&gt;
+           &lt;bucket&gt;
+              &lt;name&gt;testbucket&lt;/name&gt;
+              &lt;policy&gt;[RWRWRW]&lt;/policy&gt;
+              &lt;custom_metadata&gt;a=b,c=d,e=g,g=h&lt;/custom_metadata&gt;
+              &lt;content_location&gt;http://blue/craigspace/testbucket/&lt;/content_location&gt;
+              &lt;updated&gt;2008-03-12 17:56:24&lt;/updated&gt;
+           &lt;/bucket&gt;
+           &lt;bucket&gt;
+              &lt;name&gt;stuff&lt;/name&gt;
+              &lt;policy&gt;[RW....]&lt;/policy&gt;
+              &lt;custom_metadata&gt;billy=bob&lt;/custom_metadata&gt;
+              &lt;content_location&gt;http://blue/craigspace/stuff/&lt;/content_location&gt;
+              &lt;updated&gt;2008-03-12 17:56:24&lt;/updated&gt;
+           &lt;/bucket&gt;
+        &lt;/buckets&gt;
+      </pre>
+      <h3>Authorization Conditions</h3>
+        <ul>
+          <li>Currently none.</li>
+        </ul>
+      <h3>HTTP Headers Set/Used</h3>
+        <ul>
+          <li><a href="#header_X_Blue_Authorization">X-Blue-Authorization</a> set by client</li>
+        </ul>
+    </div>
+
+    <div class="cmd_block">
+      <h2 id="bucket_get">Get Bucket Info</h2>
+      <h3>Request</h3>
+      <pre>
+        GET http://whateverhost/(namespace)/(bucket)
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <pre>
+         &lt;bucket&gt;
+            &lt;namespace&gt;craigspace&lt;/namespace&gt;
+            &lt;name&gt;testbucket&lt;/name&gt;
+            &lt;creator&gt;CRAIG&lt;/creator&gt;
+            &lt;policy&gt;[RWR.R.]&lt;/policy&gt;
+            &lt;total_size&gt;4399&lt;/total_size&gt;
+            &lt;object_count&gt;2&lt;/object_count&gt;
+            &lt;max_size&gt;0&lt;/max_size&gt;
+            &lt;max_objects&gt;0&lt;/max_objects&gt;
+            &lt;signature_cert&gt;ParentCert.cer&lt;/signature_cert&gt;
+            &lt;encryption_cert&gt;iti.cer&lt;/encryption_cert&gt;
+            &lt;custom_metadata&gt;a=b,c=d,e=g,g=h&lt;/custom_metadata&gt;
+            &lt;updated&gt;2008-03-12 17:56:24&lt;/updated&gt;
+            &lt;objects&gt;
+               &lt;object&gt;
+                  &lt;name&gt;readme.txt&lt;/name&gt;
+                  &lt;bucket&gt;testbucket&lt;/bucket&gt;
+                  &lt;creator&gt;CRAIG&lt;/creator&gt;
+                  &lt;content_type&gt;text/plain&lt;/content_type&gt;
+                  &lt;content_length&gt;1024&lt;/content_length&gt;
+                  &lt;content_md5&gt;tnTb4uILmd4uyB/vbYxBQw&lt;/content_md5&gt;
+                  &lt;custom_metadata&gt;foo=bar&lt;/custom_metadata&gt;
+                  &lt;content_location&gt;http://blue/craigspace/testbucket/readme.txt&lt;/content_location&gt;
+                  &lt;updated&gt;2008-03-12 17:56:24&lt;/updated&gt;
+               &lt;/object&gt;
+               &lt;object&gt;
+                  &lt;name&gt;sample.css&lt;/name&gt;
+                  &lt;bucket&gt;testbucket&lt;/bucket&gt;
+                  &lt;creator&gt;CRAIG&lt;/creator&gt;
+                  &lt;content_type&gt;x-application/octet-stream&lt;/content_type&gt;
+                  &lt;content_length&gt;3375&lt;/content_length&gt;
+                  &lt;content_md5&gt;tnTbLasRdaSEsdSADASEW&gt;&lt;/content_md5&gt;
+                  &lt;custom_metadata&gt;&lt;/custom_metadata&gt;
+                  &lt;content_location&gt;http://blue/craigspace/testbucket/sample.css&lt;/content_location&gt;
+                  &lt;updated&gt;2008-03-12 17:56:24&lt;/updated&gt;
+               &lt;/object&gt;
+            &lt;/objects&gt;
+         &lt;/bucket&gt;
+      </pre>
+      <h3>Authorization Conditions</h3>
+      <ul>
+        <li>The bucket policy determines which objects are returned. If the current user type (guest, user, or owner)
+            has read permission for the bucket, all the objects in the bucket are returned. If the current user type 
+            does not have read permission, only objects owned by the user are returned.
+        </li>
+      </ul>
+      <h3>HTTP Headers Set/Used</h3>
+        <ul>
+          <li><a href="#header_X_Blue_Authorization">X-Blue-Authorization</a> set by client</li>
+          <li><a href="#header_X_Bucket_Policy"       >X-Bucket-Policy       </a> returned by server</li>
+          <li><a href="#header_X_Custom_Metadata"   >X-Custom-Metadata   </a> returned by server</li>
+          <li><a href="#header_Content_Location"    >Content-Location    </a> returned by server</li>
+
+        </ul>
+    </div>
+
+
+    <div class="cmd_block">
+      <h2 id="bucket_put">Create a Bucket</h2>
+      <h3>Request</h3>
+      <pre>
+        PUT http://whateverhost/(namespace)/(bucket)
+      </pre>
+      <h3>Alternate Request Method</h3>
+      <pre>
+        POST http://whateverhost/(namespace)/
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <pre>
+        &lt;response&gt; bucket 'testbucket' created&lt;/response&gt;
+      </pre>
+      <h3>Put vs POST</h3>
+      <p>
+        With PUT, you name the bucket yourself via the URI.  Multiple PUTS to the same URI are not allowed.
+      </p>
+      <p>
+        With POST, you just name the bucket in the URI and the server derives a new name for you.  You may retrieve the
+        URI of the new object via the <a href="#header_Content_Location">Content-Location </a> header returned by the server.
+        Multiple POSTs to the same URI will create multiple buckets.
+      </p>
+      <h3>Authorization Conditions</h3>
+      <ul>
+        <li>User must be an owner of the namespace</li>
+        <li>bucket name must not already exist</li>
+      </ul>
+      <h3>HTTP Headers Set/Used</h3>
+        <ul>
+          <li><a href="#header_X_Blue_Authorization"    >X-Blue-Authorization    </a> set by client</li>
+          <li><a href="#header_X_Bucket_Policy"           >X-Bucket-           </a> Set by client. Determines privileges         </li>
+          <li><a href="#header_X_Custom_Metadata"       >X-Custom-Metadata       </a> Set by client. For user specific data        </li>
+          <li><a href="#header_X_Bucket_Max_Size"       >X-Bucket-Max-Size       </a> Set by client. For restricting object uploads</li>
+          <li><a href="#header_X_Bucket_Max_Objects"    >X-Bucket-Max-Objects    </a> Set by client. For restricting object uploads</li>
+          <li><a href="#header_X_Bucket_Signature_Cert" >X-Bucket-Signature-Cert </a> Set by client. For restricting object uploads</li>
+          <li><a href="#header_X_Bucket_Encryption_Cert">X-Bucket-Encryption-Cert</a> Set by client. For restricting object uploads</li>
+          <li><a href="#header_Content_Location"        >Content-Location        </a> returned by server                           </li>
+        </ul>
+    </div>
+
+    <div class="cmd_block">
+      <h2 id="bucket_delete">Delete a Bucket</h2>
+      <h3>Request</h3>
+      <pre>
+        DELETE http://whateverhost/(namespace)/(bucket)
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <pre>
+        &lt;response&gt;bucket 'craigspace/testbucket' removed&lt;/response&gt;
+      </pre>
+      <h3>Authorization Conditions</h3>
+      <ul>
+        <li>user must be an owner of the namespace</li>
+      </ul>
+      <h3>HTTP Headers Set/Used</h3>
+        <ul>
+          <li><a href="#header_X_Blue_Authorization">X-Blue-Authorization</a> set by client</li>
+        </ul>
+    </div>
+
+    <div class="cmd_block">
+      <h2 id="bucket_head">Get a Bucket's header info</h2>
+      <h3>Request</h3>
+      <pre>
+        HEAD http://whateverhost/(namespace)/(bucket)
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <p>None</p>
+      <p>This commands acts just like the <a href="#bucket_get">Get Bucket Info</a> command
+         except it does not return any data.  It s usefull for getting
+         the http headers</p>
+    </div>
+
+    <div class="cmd_block">
+      <h2 id="object_put">Upload an Object</h2>
+      <h3>Request</h3>
+      <pre>
+        PUT http://whateverhost/(namespace)/(bucket)/(object)
+      </pre>
+      <h3>Alternate Request Method</h3>
+      <pre>
+        POST http://whateverhost/(namespace)/(bucket)/
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <pre>
+        &lt;response&gt; object 'craigspace/testbucket/a.dat' stored&lt;/response&gt;
+      </pre>
+      <p>-or-</p>
+      <pre>
+        &lt;response&gt; object 'craigspace/testbucket/a.dat' updated&lt;/response&gt;
+      </pre>
+      <h3>Put vs POST</h3>
+      <p>
+        With PUT, you name the object yourself via the URI. Multiple PUTs to the same URI will cause the object to 
+        be replaced each time.
+      </p>
+      <p>
+        With POST, you just name the bucket in the URI and the server derives a new name for you.  You may retrieve the 
+        URI and name of the new object via the <a href="#header_Content_Location">Content-Location </a> and 
+        <a href="#header_X_Object_Name">X-Object-Name</a> headers.  Multiple POSTs to the same URI will create
+        multiple independent objects.
+      </p>
+      <h3>Authorization Conditions</h3>
+      <ul>
+        <li>user type must pass the bucket privilige write settings</li>
+      </ul>
+      <h3>HTTP Headers Set/Used</h3>
+        <ul>
+          <li><a href="#header_X_Blue_Authorization">X-Blue-Authorization</a> set by client</li>
+          <li><a href="#header_Content_Length"   >Content-Length   </a> set by client     </li>
+          <li><a href="#header_Content_MD5"      >Content-MD5      </a> set by client     </li>
+          <li><a href="#header_Content_Type"     >Content-Type     </a> set by client     </li>
+          <li><a href="#header_X-Custom_Metadata">X-Custom-Metadata</a> set by client     </li>
+          <li><a href="#header_Content_Location" >Content-Location </a> returned by server</li>
+          <li><a href="#header_X_Object_Name"    >X-Object-Name    </a> returned by server</li>
+        </ul>
+    </div>
+
+    <div class="cmd_block">
+      <h2 id="object_get">Download an Object</h2>
+      <h3>Request</h3>
+      <pre>
+        GET http://whateverhost/(namespace)/(bucket)/(object)
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <p>The actual object content</p>
+      <h3>Authorization Conditions</h3>
+      <ul>
+        <li>user type must pass the bucket privilige read settings, or the user must
+            be the owner of the object and have write privilige</li>
+      </ul>
+      <h3>HTTP Headers Set/Used</h3>
+        <ul>
+          <li><a href="#header_X_Blue_Authorization">X-Blue-Authorization</a> set by client</li>
+          <li><a href="#header_Content_Length"   >Content-Length   </a> returned by server</li>
+          <li><a href="#header_Content_MD5"      >Content-MD5      </a> returned by server</li>
+          <li><a href="#header_Content_Type"     >Content-Type     </a> returned by server</li>
+          <li><a href="#header_X-Custom_Metadata">X-Custom-Metadata</a> returned by server</li>
+        </ul>
+    </div>
+
+    <div class="cmd_block">
+      <h2 id="object_delete">Delete an Object</h2>
+      <h3>Request</h3>
+      <pre>
+        DELETE http://whateverhost/(namespace)/(bucket)/(object)
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <pre>
+        &lt;response&gt;object 'craigspace/testbucket/a.dat' removed&lt;/response&gt;
+      </pre>
+      <h3>Authorization Conditions</h3>
+      <ul>
+        <li>user type must pass the bucket privilige write settings</li>
+      </ul>
+      <h3>HTTP Headers Set/Used</h3>
+        <ul>
+          <li><a href="#header_X_Blue_Authorization">X-Blue-Authorization</a> set by client</li>
+        </ul>
+    </div>
+
+    <div class="cmd_block">
+      <h2 id="object_head">Get an Object's header info</h2>
+      <h3>Request</h3>
+      <pre>
+        HEAD http://whateverhost/(namespace)/(bucket)/(object)
+      </pre>
+      <h3>Response Data (http status: 200)</h3>
+      <p>None</p>
+      <p>This commands acts just like the <a href="#object_get"   >Download an Object</a> command
+         except it does not return any data.  It s usefull for getting
+         the http headers</p>
+    </div>
+
+    <br />
+    <br />
+    <h2 id="headers">HTTP Headers</h2>
+
+    <div class="cmd_block">
+      <p>There are several http headers used by this service.  Most of them are optional.</p>
+
+
+<pre id="header_X_Blue_Authorization">X-Blue-Authorization: Blue realm="Blue",userid="craig",password="password"  </pre>
+<p>
+   This header is sent from the client to the server to authenticate the user.  The authentication type and 
+   realm must be 'Blue' and the userid and password must exist in the user database.  If this header does not
+   exist, the user is assumed to be a 'guest'.  Stay tuned for an alternate authorization based on the standard 
+   WWW-Authenticate/Authorization (along with a cookie) for supporting browser based sessions.
+</p>
+
+
+<pre id="header_X_Bucket_Policy">X-Bucket-Policy: private </pre>
+<p>
+  This header is used when creating a bucket.  It is sent by the client and determines the bucket access
+  privileges.
+  <p>Bucket Type values:</p>
+    <ul>
+      <li>public   - Everyone (owners, users, guests) has read and write privilege</li>
+      <li>private  - Only owners of the current namespace may read and write to this bucket</li>
+      <li>lockbox  - Owners may read/write, authenticated users may write</li>
+      <li>[RWRWRW] - The most generic privilege definition. the format is \[[RW.]{6}\] or in other words, an open bracket, 
+          6 'R' or 'W' or '.' characters, and a close bracket.  The 1st 2 characters after the open bracket define read/write
+          privileges for the owner, the next 2 are privileges for authenticated users, and the final 2 are for un-authenticated
+          users (guests). So, 'public' is a synonym for [RWRWRW], 'private' is a synonym for [RW....], 'lockbox' is [RW.W..].
+      </li>
+      <li>[RWRWRW],datetime,[RWRWRW] - the bucket will use the leftmost privilege type until datetime, after which the rightmost
+          datetime is used.  The datetime is in standard database format.  So, for example: [.W.W..],2008-11-22 11:00:00,[R.....]  
+          creates a bid submission lockbox that has a deadline if November 22nd at 11am.
+      </li>
+    </ul>
+</p>
+
+<pre id="header_Content_Length">Content-Length: 1024</pre>
+<p>
+  when uploading an object, the client may set this header.  If set, the content length entry
+  is compared to the actual content length to help ensure data integrity.
+</p>  
+<p>
+  when performing a get or a head on an object, the server will return this header.
+</p>
+
+<pre id="header_Content_MD5">Content-MD5: J1g5/eEs9yCFu1E+awZEBQ</pre>
+<p>
+  When uploading an object, the client may set this header.  If set, the content MD5 entry
+  is compared to the actual content MD5 to help ensure data integrity.
+</p>  
+<p>
+  When performing a get or a head on an object, the server will return this header.
+</p>
+
+<pre id="header_Content_Type">Content-Type: x-application/octet-stream</pre>
+<p>
+  When uploading an object, the client may set this header.  If not set, the object will
+  default to application/octet-stream
+</p>  
+<p>
+  When performing a get or a head on an object, the server will return this header.
+</p>
+
+
+<pre id="header_Content_Location">Content-Location: http://blue.cfitzherald.com/craigspace/testbucket/foo.txt</pre>
+<p>
+  When performing a PUT, POST, or GET on an object or a bucket, you will get this header providing
+  the canonical URI for the resource.
+</p>  
+<p>
+  This is mainly useful for POST commands, as the bucket or object name (and hence URI) will not be known
+  until the server responds.
+</p>  
+
+<pre id="header_X_Object_Name">X-Object-Name: foo.txt</pre>
+<p>
+  When performing a PUT, POST, or GET on an object, you will get this header providing the name of the
+  object.
+</p>  
+<p>
+  This is mainly useful for POST commands, as the object name will not be known until the server responds.
+</p>  
+
+<pre id="header_X_Custom_Metadata">X-Custom-Metadata: foo=bar</pre>
+<p>
+  When uploading an object or creating a bucket, the client may set this header.  This 
+  header is used to specify user specific data.
+</p>  
+<p>
+  When performing a get or a head on an object, the server will return this header
+  if it was set during the upload.
+</p>
+
+<pre id="header_X_Bucket_Max_Size">X-Bucket-Max-Size: 123456</pre>
+<p>
+  When creating a bucket, the client may set this header.  This header is used to specify 
+  the maximum size (in btyes) of the objects in the bucket.
+</p>  
+<p>
+  When performing a get or a head on a bucket, the server will return this header
+  if it was set during the upload.
+</p>
+
+<pre id="header_X_Bucket_Max_Objects">X-Bucket-Max-Objects: 99</pre>
+<p>  
+  When creating a bucket, the client may set this header.  This header is used to specify 
+  the maximum number of objects that may be in the bucket.
+</p>  
+<p>
+  When performing a get or a head on a bucket, the server will return this header
+  if it was set during the upload.
+</p>
+
+<pre id="header_X_Bucket_Signature_Cert">X-Bucket-Signature-Cert: sign_master.cer</pre>
+<p>  
+  When creating a bucket, the client may set this header.  This header is used to specify that only signed objects may be
+  uploaded to this bucket, and that the signature certificate must be derived from this master certificate.  Note that it
+  is up to the bucket owner to actually upload this certificate, which is an object in the 'cert' bucket.  The value of this
+  header is the name of the cert object.
+</p>  
+<p>
+  When performing a get or a head on a bucket, the server will return this header
+  if it was set during the upload.
+</p>
+
+
+<pre id="header_X_Bucket_Encryption_Cert">X-Bucket-Encryption-Cert: iti.cer</pre>
+<p>  
+  When creating a bucket, the client may set this header.  This header is used to specify that only encrypted objects may be
+  uploaded to this bucket, and that the object must be encrypted to this certificate.  Note that it is up to the bucket owner 
+  to actually upload this certificate, which is an object in the 'cert' bucket.  The value of this header is the name of the 
+  cert object.
+</p>  
+<p>
+  When performing a get or a head on a bucket, the server will return this header
+  if it was set during the upload.
+</p>
+   </div>
+   <h2>Error Handling</h2>
+   <div class="cmd_block">
+     <h2 id="errors">Error Response</h2>
+     <h3>http status codes</h3>
+     <p>the http status codes will be in the 400's or 500's</p>
+     <h3>Response Data</h3>
+     <pre>
+       &lt;error&gt;
+         &lt;status&gt;401&lt;/status&gt;
+         &lt;message&gt;bucket 'craigspace/testbucket' already exists&lt;/message&gt;
+       &lt;/error&gt;
+     </pre>
+   </div>
+
+   <h2>Todo</h2>
+   <div class="cmd_block">
+     <ul>
+       <li>Finish the check on parent cert code</li>
+       <li>Finish Admin pages for maintaining users</li>
+       <li>Code cleanup</li>
+       <li>Add xml styling for browser base view of xml</li>
+       <li>? Add full browser interface ?</li>
+       <li>? Add std html authentication / cookie  support in addition to existing authentication for browser sessions ?</li>
+     </ul>
+   </div>
+
+  </body>
+</html>
+
+
+

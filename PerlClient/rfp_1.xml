@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<leaserfb>
+  <agency-id type="integer" nil="true">1</agency-id>
+  <bids-due type="datetime">2009-05-20T12:51:00-04:00</bids-due>
+  <created-at type="datetime">2008-05-12T12:53:22-04:00</created-at>
+  <description>Lease Descr</description>
+  <id type="integer">1</id>
+  <lease-duration>88</lease-duration>
+
+  <lease-unit>miles</lease-unit>
+  <notice>This is a notice</notice>
+  <updated-at type="datetime">2008-05-12T12:53:22-04:00</updated-at>
+  <parcel>
+    <area type="float">99.0</area>
+    <created-at type="datetime">2008-05-12T12:53:22-04:00</created-at>
+
+    <description>Parcel Descr</description>
+    <id type="integer">1</id>
+    <leaserfb-id type="integer">2</leaserfb-id>
+    <updated-at type="datetime">2008-05-12T12:53:22-04:00</updated-at>
+    <boundaries type="array"/>
+  </parcel>
+</leaserfb>

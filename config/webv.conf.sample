@@ -1,0 +1,46 @@
+#############################################################################
+#
+#  Blue Elephant REST/ROA Web Server
+#
+#  blue.cfitzgerald.infotechfl.com c:\blue
+#
+#  This sample web.conf file is currently setup to be self contained as a
+#  virtual web server.  So for example, getting an object looks like this:
+#
+#     GET http://blue.cfitzgerald.infotechfl.com/namespace/bucket/object
+#
+#  This service may also run as a subset of an existing web service by:
+#
+#  - removing the <VirtualHost *> and other virtual host entries that no longer apply
+#  - Setting BLUE_URL_ROOT to the url prefix necessary to access this service
+#  - Changing the re-write rules to include the BLUE_URL_ROOT in the regexes
+#    and possibly changing the document locations
+#
+#  So for example you could make these changes:
+#     SetEnv BLUE_URL_ROOT   "/Resources"
+#     RewriteRule ^/Resources/([^/?]*)(.*)$  /functions/main.pl$2  [PT,L]
+#
+#  And then access an object like this:
+#
+#     GET http://myserver.com/Resources/namespace/bucket/object
+#
+#
+#############################################################################
+<VirtualHost *>
+   ServerName  blue.cfitzgerald.infotechfl.com
+   ServerAlias blue
+   
+   LogLevel warn
+   ErrorLog "C:/blue/logs/error.log"
+   CustomLog "C:/blue/logs/access.log" common 
+
+   DocumentRoot "C:/blue/html"
+
+   RewriteEngine on
+   RewriteLog /blue/logs/rwl.log
+   RewriteLogLevel 1
+
+   Include c:/blue/config/web.conf
+
+</VirtualHost>
+

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<leaserfb>
+  <id >1</id>
+  <agency-id>1</agency-id>
+  <bids-due >2009-05-20T12:51:00-04:00</bids-due>
+  <created-at >2008-05-12T12:53:22-04:00</created-at>
+  <description>Lease Descr</description>
+  <lease-duration>88</lease-duration>
+  <lease-unit>miles</lease-unit>
+  <notice>This is a notice</notice>
+  <updated-at >2008-05-12T12:53:22-04:00</updated-at>
+  <tract_kind>     1 - OFFSHORE </tract_kind>
+  <adv_tract_num>  38851        </adv_tract_num>
+  <parish>         CAMERON 90A, 90A, 90A, 90A WEST CAMERON,  </parish>
+  <township_range> WEST CAMERON </township_range>
+  <area_block>     2, 28, 3, 4  </area_block>
+  <tract_acreage>  2,500.000</tract_acreage>
+  <bidder_id>      99       </bidder_id>
+  <bid_acreage>    999      </bid_acreage>
+  <bonus_leased>   99.99    </bonus_leased>
+  <price_per_acre> 9.99     </price_per_acre>
+  <oil_royalty>    9980.00  </oil_royalty>
+  <gas_royalty>    99999.99 </gas_royalty>
+  <parcel>
+    <area >99.0</area>
+    <created-at >2008-05-12T12:53:22-04:00</created-at>
+    <description>Parcel Descr</description>
+    <id >1</id>
+    <leaserfb-id >2</leaserfb-id>
+    <boundaries >
+      <boundary>
+        <index >1</index>
+        <id >1</id>
+        <easting >22.0</easting>
+        <northing >11.0</northing>
+        <parcel-id >1</parcel-id>
+        <updated-at >2008-05-13T10:50:15-04:00</updated-at>
+      </boundary>
+      <boundary>
+        <index >2</index>
+        <id >2</id>
+        <easting >44.0</easting>
+        <northing >33.0</northing>
+        <parcel-id >1</parcel-id>
+        <updated-at >2008-05-13T10:50:20-04:00</updated-at>
+      </boundary>
+      <boundary>
+        <index >3</index>
+        <id >3</id>
+        <easting >44.0</easting>
+        <northing >44.0</northing>
+        <parcel-id >1</parcel-id>
+        <updated-at >2008-05-13T10:50:24-04:00</updated-at>
+      </boundary>
+    </boundaries>
+  </parcel>
+</leaserfb>
+
+
+
+

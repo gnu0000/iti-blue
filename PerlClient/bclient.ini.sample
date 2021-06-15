@@ -1,0 +1,72 @@
+#
+# ini file for bclient.pl 
+#
+# the [global] section contains default values for non-header entries
+#
+# the remaining sections may contain:
+#   username=       specify the username
+#   password=       specify the password
+#   url_base=       specify the base of the url if the user used a '.'
+#   show_content=   set to 1 to show output to stdout
+#
+# sample use
+#   perl bclient2.pl test_bucket_put ./craigspace/testbucket
+#   perl bclient2.pl put ./craigspace/testbucket/notes.txt notes.txt
+#   perl bclient2.pl test_bucket_get ./craigspace/testbucket
+#   perl bclient2.pl get ./craigspace/testbucket/notes.txt n.t
+#
+# headers may contain the following variables:
+#      $content_length - the length of the file specified on the cmd line
+#      $content_md5    - the base64 md5 of the file specified on the cmd line
+#      $filename       - the file specified on the cmd line
+#
+[global]
+username=craig
+password=password
+url_base=http://blue
+
+# test_bucket_put
+# just a sample of creating a bucket with some custom headers
+#
+[test_bucket_put]
+X-Bucket-Policy=private
+X-Bucket-Max-Size=123456
+X-Bucket-Max-Objects=99
+X-Custom-Metadata=a=b,c=d,e=g,g=h
+show_content=1
+
+# test_lockbox_put
+# This is for creating a lockbox
+# make sure to upload the 2 cert files to the cert bucket before
+# attempting to upload any files
+#
+[test_lockbox_put]
+X-Bucket-Policy=[RW.W..]
+X-Bucket-Signature-Cert=thawte_root_1.pem,thawte_root_2.pem
+show_content=1
+
+# sample get
+#
+[test_bucket_get]
+show_content=1
+
+# sample object put
+#
+[test_object_put]
+X-Custom-Metadata=Test=1,Frank=Zappa
+Content-Length=$content_length
+Content-MD5=$content_md5
+show_content=1
+
+
+[test_object_get]
+
+[default_delete]
+show_content=1
+
+[default_put]
+show_content=1
+
+[default_post]
+show_content=1
+
